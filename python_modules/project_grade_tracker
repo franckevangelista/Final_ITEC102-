@@ -1,0 +1,51 @@
+import csv
+import statistics
+from datetime import datetime, date
+
+FILENAME = "grades.csv"
+FIELDS = ["name", "quiz", "midterm", "project"]
+
+students = [
+    ["Ana", 88, 92, 95],
+    ["Ben", 75, 80, 78],
+    ["Cara", 90, 85, 88],
+    ["Dan", 60, 70, 65],
+    ["Eve", 95, 98, 100],
+]
+
+# ---- csv: save the records ----
+with open(FILENAME, "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(FIELDS)
+    writer.writerows(students)
+
+# ---- csv: load them back ----
+records = []
+with open(FILENAME, newline="") as f:
+    for row in csv.DictReader(f):
+        scores = [int(row["quiz"]), int(row["midterm"]), int(row["project"])]
+        records.append((row["name"], statistics.mean(scores)))   # statistics: per-student average
+
+averages = [avg for _, avg in records]
+
+# ---- statistics: class summary ----
+q1, q2, q3 = statistics.quantiles(averages, n=4)
+now = datetime.now()                                    # datetime: timestamp
+deadline = date(2026, 12, 15)
+days_left = (deadline - now.date()).days                # datetime: arithmetic
+
+print("=" * 40)
+print("STUDENT GRADE REPORT")
+print("Generated:", now.strftime("%B %d, %Y %I:%M %p"))
+print("=" * 40)
+for name, avg in records:
+    status = "PASSED" if avg >= 75 else "FAILED"
+    print(f"{name:<8}{avg:>8.2f}   {status}")
+print("-" * 40)
+print(f"Class mean   : {statistics.mean(averages):.2f}")
+print(f"Class median : {statistics.median(averages):.2f}")
+print(f"Std deviation: {statistics.stdev(averages):.2f}")
+print(f"Quartiles    : Q1={q1:.2f}  Q2={q2:.2f}  Q3={q3:.2f}")
+top = max(records, key=lambda r: r[1])
+print(f"Top student : {top[0]} ({top[1]:.2f})")
+print(f"Days until submission deadline: {days_left}")
